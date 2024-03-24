@@ -8,5 +8,6 @@ data class SavedImageEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val imageUrl: String,
-    var isLiked: Boolean = false
+    var isLiked: Boolean = false,
+    var imageCache: String
 )

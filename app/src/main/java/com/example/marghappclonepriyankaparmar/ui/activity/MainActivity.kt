@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.marghappclonepriyankaparmar.R
 import com.example.marghappclonepriyankaparmar.databinding.ActivityMainBinding
+import com.example.marghappclonepriyankaparmar.ui.fragment.CacheImageFragment
 import com.example.marghappclonepriyankaparmar.ui.fragment.HomeFragment
 import com.example.marghappclonepriyankaparmar.ui.fragment.ProfileFragment
 import com.example.marghappclonepriyankaparmar.ui.fragment.SavedFragment
@@ -37,6 +38,12 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_profile -> {
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, ProfileFragment())
+                        .commit()
+                    true
+                }
+                R.id.navigation_img -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, CacheImageFragment())
                         .commit()
                     true
                 }

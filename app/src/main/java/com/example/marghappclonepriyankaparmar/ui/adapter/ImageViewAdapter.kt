@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.MediaScannerConnection
 import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -34,6 +35,10 @@ class ImageViewAdapter(
     val context: Context, private val imageList: List<Hit>, var savedImageDao: SavedImageDao
 ) :
     RecyclerView.Adapter<ImageViewAdapter.ImageViewHolder>() {
+
+    companion object {
+        var imageUriCache = ""
+    }
 
     class ImageViewHolder(val binding: ItemImagesBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(get: Hit) {
@@ -85,6 +90,7 @@ class ImageViewAdapter(
                     }
                 })
         }
+
 
         fun shareImage(imageUrl1: String) {
             val imageUrl = imageUrl1
@@ -165,7 +171,7 @@ class ImageViewAdapter(
         holder.binding.likeButton.setOnClickListener {
             imageList[position].isSaved = !imageList[position].isSaved
             holder.binding.likeButton.setImageResource(if (imageList[position].isSaved) R.drawable.ic_saved else R.drawable.ic_like)
-            insertImageUrl(imageList[position].largeImageURL, imageList[position].isSaved)
+            downloadImageInCache(context, imageList[position].largeImageURL, position)
         }
     }
 
@@ -173,9 +179,83 @@ class ImageViewAdapter(
         return imageList.size
     }
 
-    fun insertImageUrl(imageUrl: String, isSaved: Boolean) {
+    fun downloadImageInCache(context: Context, imageUrl: String, adapterPosition: Int) {
+        val imageUrl = imageUrl
+        val requestOptions = RequestOptions().override(300)
+        Glide.with(context)
+            .asBitmap()
+            .load(imageUrl)
+            .apply(requestOptions)
+            .listener(object : RequestListener<Bitmap> {
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<Bitmap>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (resource != null) {
+                        val cachePath = File(context.cacheDir, "imagesCache")
+                        cachePath.mkdirs()
+
+                        val imageName = getImageNameFromUrl(imageUrl)
+
+                        val imageFile =
+                            File(cachePath, "$imageName")
+
+                        if (imageFile.exists()) {
+                            Toast.makeText(
+                                context,
+                                "this Image is Already exist",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            FileOutputStream(imageFile).use { outputStream ->
+                                resource.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                            }
+                            imageUriCache = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                imageFile
+                            ).toString()
+                            insertImageUrl(
+                                imageList[adapterPosition].largeImageURL,
+                                imageList[adapterPosition].isSaved,
+                                imageUriCache
+                            )
+                        }
+                        Log.d("cache file", "priyanka onResourceReady: $imageUriCache")
+                    }
+                    return true
+                }
+
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Bitmap>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+            })
+            .submit()
+    }
+
+    fun getImageNameFromUrl(url: String): String? {
+        val lastSegment = url.substringAfterLast("/")
+        val imageName = if (lastSegment.contains("?")) {
+            lastSegment.substringBefore("?")
+        } else {
+            lastSegment
+        }
+
+        return imageName
+    }
+
+    fun insertImageUrl(imageUrl: String, isSaved: Boolean, imageCache: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val savedImage = SavedImageEntity(imageUrl = imageUrl, isLiked = isSaved)
+            val savedImage =
+                SavedImageEntity(imageUrl = imageUrl, isLiked = isSaved, imageCache = imageCache)
             if (isSaved) {
                 savedImageDao.insertSavedImage(savedImage)
             } else {
