@@ -190,13 +190,15 @@ class ImageViewAdapter(
                 override fun onResourceReady(
                     resource: Bitmap,
                     model: Any,
-                    target: com.bumptech.glide.request.target.Target<Bitmap>?,
+                    target: Target<Bitmap>?,
                     dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
                     if (resource != null) {
+
                         val cachePath = File(context.cacheDir, "imagesCache")
-                        cachePath.mkdirs()
+                        if (!cachePath.exists())
+                            cachePath.mkdirs()
 
                         val imageName = getImageNameFromUrl(imageUrl)
 
