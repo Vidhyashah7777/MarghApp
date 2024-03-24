@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">MarghAppClonePriyankaParmar</string>
+    <string name="save">Save</string>
+    <string name="download">Download</string>
+    <string name="share">Share</string>
+    <string name="select_category">Select a Category</string>
+    <string name="label">Random Images as per your need</string>
+    <string name="search">Search Category</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="about_us">About Us</string>
+    <string name="logout">Logout</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="delete">Delete</string>
+    <string name="error_no_image">No Images Found</string>
+</resources>
